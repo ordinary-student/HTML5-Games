@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>2048小游戏</title>
+
+<style>
+ *{margin: 0;padding: 0;}
+ body{
+	font-size: 30px;
+	background-color:rgba(23,44,60);
+	background: url(https://raw.githubusercontent.com/ordinary-student/HTML5-Games/master/2048/img/1.jpg);
+	background-size: 100% 100%;
+	background-attachment: fixed;
+	overflow:hidden;
+ }
+ .readme{
+	position:absolute;
+	left: 5%;
+	top:100px;
+	width: 250px;
+ }
+ .readme span{
+	  font-size: 16px;
+	  text-align:center;
+	  color: red;
+	  font-weight: 800;
+ }
+ .readme p{
+	display: block;
+	font-size: 16px;
+	text-indent: 20px;
+	color: #75ffe7;
+ }
+ .tab{
+	margin: 100px auto 0;
+	border-radius: 15px;
+	text-align: center;
+	font-weight: bold;
+	background-color:#999;
+ }
+ td{
+	width: 100px;
+	height:100px;
+	border-radius:15px;
+ }
+ .text{
+	position: absolute;
+	right:20%;
+	top: 100px;
+	color: red;
+ }
+ .restart{
+	font-size: 22px;
+	margin: 25px;
+	color: white;
+	text-align: center;
+	text-decoration:none;
+	cursor: pointer;
+ } 
+ .restart a{
+	font-size: 22px;
+	margin: 25px;
+	color: white;
+	text-align: center;
+	text-decoration:none;
+ } 
+ .score{
+	color: #75ffe7;
+	font-size: 36px;
+ }
+</style>
+
+</head>
+<body>
+
+<div class="readme">
+	<span>玩法说明:</span>
+	<p>键盘上下左右控制移动，相同格子会累积加起来重叠为新的格子，
+	   当所有格子均占有并不能移动，则游戏结束。按下回车键或点击重新开始，游戏将会重置。</p>
+   </div>
+	  <table class="tab" cellpadding="6"></table>
+	  <div class="restart"><a href="javascript:location.reload();">重新开始</a></div>
+	  <div class="text" style="font-size:16px;">分数：<span class="score">  </span> 分</div>
+	  
+<script type="text/javascript">
+// 模块化开发思路
+var json={
+	
+	//循环更换背景图片
+	changeBackgroundImg:function(){
+	//前缀
+	var prefix = "https://raw.githubusercontent.com/ordinary-student/HTML5-Games/master/2048/img/";
+	//后缀
+	var suffix = ".jpg";
+	
+	//加载图片
+	var imgList = [];
+	for (var i = 1; i <= 6; i++) { 
+    var img = new Image();
+	img.src = prefix + i + suffix;
+	imgList[i] = img; 
+	}
+	
+	//索引
+    var k = 1;  
+	function change(){
+             
+			 k++;  
+			 // 超过6则回到1
+             if(k>=7) {
+			 k = 1;
+			 }    
+			   
+			//显示对应的图片
+			document.body.style.backgroundImage = "url(" + imgList[k].src + ")"; 					   
+        }
+        setInterval(change,5000);//5秒换一次
+        //setInterval()函数，按照指定的周期（按毫秒计）来调用函数或表达式
+	},
+	
+	// 创建初始化函数
+	init:function(){
+	var otab= document.querySelector('.tab'),
+		str='',
+		id=1;//返回文档指定的css元素，并保存
+		for(var i=0;i<4;i++){
+		   str+='<tr>';
+		   for(var j=0;j<4;j++){
+			str +='<td id="' + id++ +'"></td>';
+		   }
+		   str +='</tr>';
+		}
+		 otab.innerHTML=str;                       
+		 this.randomNum();
+		 this.randomNum();
+		 this.result();
+	},
+	
+	//创建一个任意区间的随机函数
+	myRandom:function(min , max){
+		return Math.round(Math.random() * (max-min) + min);
+	},
+	
+	//随机在格子上生成一个数字
+	randomNum : function(){
+	  var num = this.myRandom(1,16);
+		ogrid=document.getElementById(num);
+		if(ogrid.innerHTML ==''){
+			ogrid.innerHTML= this.myRandom(1,2)*2;
+		}else{
+			this.randomNum();
+		}
+	},
+	
+	//上键
+	top:function(){
+		for(var i=1;i<=4;i++){
+			for(var j=i;j<=i+12;j+=4){
+				for(k=j;k>4;k-=4){
+				   this.change(document.getElementById(k -4),
+						  document.getElementById(k));
+				}
+			}
+		}
+	},
+	
+	//下键
+	 bottom:function(){
+		 for(var i=1;i<=4;i++){
+			for(var j = i+12;j>=i;j -=4){
+				for(var k = j;k < 13;k +=4){
+					 this.change(document.getElementById(k +4),
+						  document.getElementById(k));
+				}
+			}
+		 }
+	 },
+	 
+	 //左键
+	 left:function(){
+		for(var i=1;i<=13;i+=4){
+			for(var j=i; j<= i+3; j++){
+				for(var k=j; k>i;k--){
+					 this.change(document.getElementById(k -1),
+						  document.getElementById(k));
+				}
+			}
+		}
+	 },
+	 
+	 //右键
+	 right:function(){
+		for(var i=1;i<=13;i +=4){
+			for(var j = i+4; j>=i;j--){
+				for(var k=j;k<i+3;k++){
+					 this.change(document.getElementById(k +1),
+						  document.getElementById(k));
+				}
+			}
+		}
+	 },
+	
+	//移动合并检测函数
+	change :function(before,after){
+		//移动
+		if(before.innerHTML == '' && after.innerHTML != ''){
+			before.innerHTML= after.innerHTML;
+			after.innerHTML='';
+		}
+		//合并
+		if(before.innerHTML != '' && before.innerHTML == 
+		after.innerHTML){
+			 before.innerHTML *=2;
+			 after.innerHTML='';
+		}
+		
+	},       
+	
+	//改变颜色计算结果函数
+	result:function(){
+		var color={'':'#fff','2':'#0f0','4':'#00ccff','8':'#ff9900',
+		'16':'#00cc66','32':'#ffcccc','64':'#ff33ff','128':'#0066cc',
+		'256':'#6633cc','512':'#ff0099','1024':'#990033','2048':'#6600ff',
+		'4096':'#cc0066'},
+		score=0;
+		for(var i =  1 ; i <= 16 ;i++){
+			var ogrid=document.getElementById(i);
+			ogrid.style.backgroundColor=color[ogrid.innerHTML];
+			score += ogrid.innerHTML * 10;
+		}
+		 document.querySelector('.score').innerHTML=score;
+	}
+}
+
+//页面加载完成后调用
+window.onload=function(){
+	json.init();
+	json.changeBackgroundImg();
+}
+
+//检测按键
+document.onkeyup=function(e){
+	//判断是否有效键
+	var flag = false;
+	if(e.keyCode==37)  {json.left();flag = true;}
+	else if(e.keyCode==38)  {json.top();flag = true;} 
+	else if(e.keyCode==39)  {json.right();flag = true;}
+	else if(e.keyCode==40)  {json.bottom();flag = true;}
+	else if(e.keyCode==13)  {json.init();flag = true;}
+	
+	if(flag){
+	json.randomNum();
+	json.result();
+	}
+}
+
+</script>
+
+<div style="text-align:center">
+<p><a href="https://github.com/ordinary-student/HTML5-Games" style="text-decoration:none">更多游戏</a></p>
+</div>
+</body>
+</html>
